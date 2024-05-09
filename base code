@@ -1,0 +1,37 @@
+#PTF
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+
+df = pd.read_excel("1PTFeğitim.xlsx")
+
+df["PTF"] = df["PTF"].fillna(0)
+
+X = df[["Tahmin","RESÜretim","REShızı","KGÜP"]]
+y = df["PTF"]
+
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+
+tarih_saat_df = df.loc[X_test.index, ["Tarih", "Saat", "ay", "yıl"]]
+
+prediction_df = pd.DataFrame({"Tarih": tarih_saat_df["Tarih"], 
+                               "Saat": tarih_saat_df["Saat"],
+                               "Ay": tarih_saat_df["ay"],
+                               "Yıl": tarih_saat_df["yıl"],
+                               "PTF_Tahmin": y_pred})
+
+prediction_df["Tarih_Saat"] = tarih_saat_df["Tarih"] + pd.to_timedelta(tarih_saat_df["Saat"])
+
+prediction_df = prediction_df.sort_values(by=["Tarih_Saat"])
+
+prediction_df.to_excel("1PTFTAHMİNas.xlsx", index=False)
+
+
