@@ -1,0 +1,69 @@
+import pickle
+model="PTFTahmin.pickle"
+
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# Modeli bir dosyaya kaydedin
+with open("PTFTahmin.pickle", "wb") as file:
+    pickle.dump(model, file)
+with open("PTFTahmin.pickle", "rb") as file:
+    model = pickle.load(file)
+
+print(model, type(model))
+
+
+
+#PTF Tahmin
+import pandas as pd
+import pickle
+from datetime import datetime
+import numpy as np
+
+# 1. Kaydedilmiş modeli yükle
+with open("PTFTahmin.pickle", "rb") as file:
+    model = pickle.load(file)
+
+# Verileri oku
+forecast_data = pd.read_excel("asPTF.xlsx")
+
+# 2. Nisan 2024 tarih aralığını oluştur(Örnek tarih aralığı)
+start_date = datetime(2024, 4, 1)
+end_date = datetime(2024, 5, 3)
+forecast_dates = pd.date_range(start_date, end_date, freq='h')
+
+# Tahmin yapmak için gerekli olan sütunları seç
+forecast_X = forecast_data.loc[:, ["Tahmin","RESÜretim","REShızı","KGÜP"]]
+
+# Tahminler yap
+forecast_y = model.predict(forecast_X)
+
+# Tahminlerle bir DataFrame oluştur
+forecast_df = pd.DataFrame({
+    "Tarih": forecast_dates,
+    "PTF_Tahmin": forecast_y
+})
+
+# Tahminleri Excel dosyasına yaz
+forecast_df.to_excel("may_PTFTahminleri.xlsx", index=False)
+
+
+#Boyutlarını ölç
+len(forecast_y)
+len(forecast_dates)
+
+
+# Eğitim seti üzerinde modelin performansını değerlendir
+y_train_pred = model.predict(X_train)
+train_mse = mean_squared_error(y_train, y_train_pred)
+print("Eğitim seti MSE:", train_mse)
+
+# Test seti üzerinde modelin performansını değerlendir
+y_test_pred = model.predict(X_test)
+test_mse = mean_squared_error(y_test, y_test_pred)
+print("Test seti MSE:", test_mse)
+
+# Örnek bir girdi vererek tahmin yap
+sample_input = X_test.iloc[0].values.reshape(1, -1)
+prediction = model.predict(sample_input)
+print("Örnek tahmin:", prediction)
